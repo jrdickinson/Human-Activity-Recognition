@@ -103,10 +103,11 @@ y_valid = y_test.iloc[0:1520]
 y_test = y_test.iloc[1520:2946]
 ```
 
-### First we'll start with XGBoost since tends to make strong models.  I'm going to do a bit of a lengthy procedure here to see how well XGBoost will perform.  I run through the model multiple times iteratively dropping 1 column.  Columns that have lower accuracies are stronger features.  A cutoff point will be created to remove the weaker features from the model.  Then the parameters will be retuned and we'll repeat the process until we find the feature set that seems like it will do best.  Number of iterations and max depth will be kept low for these parts since those features really increase the amount of computing time, but when we're satisfied with the feature selection, we'll tune those as well.  Finally, we'll test on the test set to see how well the model performed.
+### First, we'll start with XGBoost since it tends to make strong models.  I'm going to do a bit of a lengthy procedure here to see how well XGBoost will perform.  I run through the model multiple times iteratively dropping 1 column.  If the accuracy drops when a particular feature is dropped, this shows that the feature is important in the model.  Features with little change are either not important or are highly correlated with other features.  A cutoff point will be created to remove the weaker features from the model.  Then the parameters will be retuned and we'll repeat the process until we find the feature set that seems like it will do best.  Number of iterations and max depth will be kept low for these parts since those features really increase the amount of computing time, but when we're satisfied with the feature selection, we'll tune those as well.  Finally, we'll test on the test set to see how well the model performed.
 
 
 ```python
+### Iteratively remove columns
 # # First Iteration
 # select_columns = np.r_[0:561]
 # # Second Iteration
@@ -167,6 +168,7 @@ for i in range(0,561):
 
 
 ```python
+### Tune hyperparameters on validation
 # # First Iteration
 # select_columns = np.r_[0:561]
 # # Second Iteration
@@ -231,6 +233,7 @@ for i, params in enumerate(gridXG):
 
 
 ```python
+###Final accuracy on test set
 select_columns = np.r_[0,1,4,5,9,11,21,23,38,42,43,45,46,47,48,49,55,56,58,59,61,62,64,65,67,68,69,71,74,75,76,80,81,83,84,89,90,92,93,95,99,100,101,102,103,114,120,126,131,132,134,145,151,152,153,157,176,183,187,188,189,193,194,197,199,202,203,210,213,215,216,218,245,246,248,249,255,263,271,319,330,333,342,350,355,356,388,407,408,410,429,430,432,433,434,435,437,438,439,440,441,442,443,447,448,450,452,453,454,455,456,457,459,460,461,462,463,464,465,466,468,469,472,474,479,486,487,488,491,496,498,499,503,504,506,507,508,509,511,512,514,515,516,517,518,519,520,521,523,524,525,538,539,540,541,542,543,544,548,555,557,558]
 # # Fourth Iteration
 select_columns = select_columns[np.r_[10,11,13,14,17:22,23:28,29:35,36,37,39:47,49,50,52:56,59:65,67:74,75,79,91:94,95,99,104:109,110:120,121:137,138,140:147,148:154,155:162]]
@@ -626,7 +629,7 @@ for params in gridSVC:
     3.241715669631958
     
 
-### SVM was another very strong model and random forest also did fairly well.  The test results shown for SVM are a little inflated since those parameters were tested seperately without a validation set.  Now that we saw how the machine learning models performed, the larger datasets will be used to create neural network models.
+### SVM was another very strong model and random forest also did fairly well.  The test results shown for SVM are a little inflated since those parameters were tested on a seperate file without a validation set. Test accuracy should be around .96 .  Now that we saw how the machine learning models performed, the larger datasets will be used to create neural network models.
 
 
 ```python
@@ -752,7 +755,6 @@ model.add(Dense(6, activation='softmax'))
 
 
 ```python
-# Let's use a different optimizer this time
 noisy = add_gradient_noise(RMSprop)
 model.compile(optimizer="Adamax",
 # model.compile(optimizer=noisy(),
@@ -820,7 +822,6 @@ model.add(Dense(6, activation='softmax'))
 
 
 ```python
-# Let's use a different optimizer this time
 noisy = add_gradient_noise(RMSprop)
 model.compile(optimizer="Adamax",
 # model.compile(optimizer=noisy(),
@@ -905,7 +906,6 @@ model.add(Dense(6, activation='softmax'))
 
 
 ```python
-# Let's use a different optimizer this time
 noisy = add_gradient_noise(Adam)
 model.compile(optimizer="adam",
 # model.compile(optimizer=noisy(),
@@ -940,4 +940,4 @@ model.evaluate(x_test, y_test)
 
 ### Conclusion:
 
-### A LSTM does about the same as an ANN on this dataset.  XGBoost and SVM were the best models.
+### A LSTM does about the same as an ANN on this dataset.  XGBoost and SVM were the best models with around 96% accuracy.  With this data, we can predict with high confidence what activity a human is doing.
